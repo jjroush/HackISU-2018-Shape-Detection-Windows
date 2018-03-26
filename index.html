@@ -34,7 +34,7 @@
 </body>
 <script>
     const faceDetector = new window.FaceDetector({maxDetectedFaces: 10, fastMode: true});
-    const barCodeDetector = new window.BarcodeDetector();
+   // const barCodeDetector = new window.BarcodeDetector();
 
     async function detect() {
         
@@ -43,30 +43,30 @@
         const faces = await faceDetector.detect(vid);
         const barCodes = await barCodeDetector.detect(vid);
         drawFaces(faces); 
-        drawBarCodes(barCodes);
+    //    drawBarCodes(barCodes);
     }
     const codeBox = document.createElement('div');
 
-    async function drawBarCodes(barCodes) {
-        barCodes.forEach(barCodes => {
-            console.log(` Barcode ${barCodes.rawValue}`);
-            document.getElementById("barcode").innerHTML = "Bar Code: " + barCodes.rawValue;
-            document.getElementById("link").href = barCodes.rawValue;
+    // async function drawBarCodes(barCodes) {
+    //     barCodes.forEach(barCodes => {
+    //         console.log(` Barcode ${barCodes.rawValue}`);
+    //         document.getElementById("barcode").innerHTML = "Bar Code: " + barCodes.rawValue;
+    //         document.getElementById("link").href = barCodes.rawValue;
 
-            const { width, height, top, left } = barCodes.boundingBox;
+    //         const { width, height, top, left } = barCodes.boundingBox;
 
            
-            codeBox.classList.add('code');
-            codeBox.style.cssText = `
-            width: ${width}px;
-            height: ${height}px;
-            top: ${top+50}px;
-            left: ${left+200}px;
-            `;
-            console.log(codeBox);
-            document.getElementsByClassName("wrapper")[0].appendChild(codeBox);
-        });
-    }
+    //         codeBox.classList.add('code');
+    //         codeBox.style.cssText = `
+    //         width: ${width}px;
+    //         height: ${height}px;
+    //         top: ${top+50}px;
+    //         left: ${left+200}px;
+    //         `;
+    //         console.log(codeBox);
+    //         document.getElementsByClassName("wrapper")[0].appendChild(codeBox);
+    //     });
+    // }
 
     const faceBox = document.createElement('div');
     const e1 = document.createElement('div');
