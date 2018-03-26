@@ -1,0 +1,258 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Face Detector</title>
+    <link href="https://fonts.googleapis.com/css?family=Montserrat:400,600" rel="stylesheet">
+</head>
+<body>
+    <h1 id="start" style="vertical-align:middle;">WICG Shape Detection API (Experimental)</h1>
+    <a id="link" target="_blank" href=""><h2 id="barcode"></h2></a>
+        <div class="wrapper"><video id="live" style="display: block; margin:0 auto" autoplay></video></div>
+        <script type="text/javascript">
+          video = document.getElementById("live")
+    
+          navigator.mediaDevices.getUserMedia({video: { width: 1900, height: 720 }})
+            .then(function(stream) {
+                var video = document.querySelector('video');
+                video.srcObject = stream;
+                 video.onloadedmetadata = function(e) {
+                 video.play();
+                };
+            })
+            .catch(function(err) { console.log(err.name + ": " + err.message); });
+          </script>
+          <div id="privacy-toggle">
+            <h2>Privacy Toggle</h2>
+            <label class="switch">
+                <input id="p-toggle" type="checkbox">
+                <span class="slider"></span>
+            </label>
+          </div>
+</body>
+<script>
+    const faceDetector = new window.FaceDetector({maxDetectedFaces: 10, fastMode: true});
+    const barCodeDetector = new window.BarcodeDetector();
+
+    async function detect() {
+        
+        const vid = document.getElementById('live');
+       
+        const faces = await faceDetector.detect(vid);
+        const barCodes = await barCodeDetector.detect(vid);
+        drawFaces(faces); 
+        drawBarCodes(barCodes);
+    }
+    const codeBox = document.createElement('div');
+
+    async function drawBarCodes(barCodes) {
+        barCodes.forEach(barCodes => {
+            console.log(` Barcode ${barCodes.rawValue}`);
+            document.getElementById("barcode").innerHTML = "Bar Code: " + barCodes.rawValue;
+            document.getElementById("link").href = barCodes.rawValue;
+
+            const { width, height, top, left } = barCodes.boundingBox;
+
+           
+            codeBox.classList.add('code');
+            codeBox.style.cssText = `
+            width: ${width}px;
+            height: ${height}px;
+            top: ${top+50}px;
+            left: ${left+200}px;
+            `;
+            console.log(codeBox);
+            document.getElementsByClassName("wrapper")[0].appendChild(codeBox);
+        });
+    }
+
+    const faceBox = document.createElement('div');
+    const e1 = document.createElement('div');
+    const e2 = document.createElement('div');
+
+    async function drawFaces(faces) {
+        faces.forEach(face => {
+            console.log(face);
+            const { width, height, top, left } = face.boundingBox;
+            
+            
+            if (document.getElementById('p-toggle').checked) {
+            faceBox.classList.add('hide');
+            faceBox.style.cssText = `
+            width: ${width}px;
+            height: ${height/4}px;
+            top: ${top+150}px;
+            left: ${left+200}px;
+            background-color: rgb(0, 0, 0);
+            `;
+            document.getElementsByClassName("wrapper")[0].appendChild(faceBox);
+            } else {
+            faceBox.classList.add('face');
+            faceBox.style.cssText = `
+            width: ${width}px;
+            height: ${height}px;
+            top: ${top+70}px;
+            left: ${left+200}px;
+            background-color: rgba(255, 0, 0, 0.1);
+
+            `;
+            document.getElementsByClassName("wrapper")[0].appendChild(faceBox);
+            }
+
+             
+                e1.classList.add('eye');
+                e1.style.cssText = `
+                    top: ${face.landmarks[1].location.y+110}px;
+                    left: ${face.landmarks[1].location.x+200}px;
+                 `;
+                 document.getElementsByClassName("wrapper")[0].appendChild(e1);
+
+                e2.classList.add('eye');
+                e2.style.cssText = `
+                    top: ${face.landmarks[0].location.y+110}px;
+                    left: ${face.landmarks[0].location.x+200}px;
+                 `;
+                 document.getElementsByClassName("wrapper")[0].appendChild(e2);
+
+
+       
+            const angle = Math.atan2(face.landmarks[1].location.x - face.landmarks[0].location.x, face.landmarks[1].location.y - face.landmarks[0].location.y) * -180 / Math.PI - 90;
+            console.log(angle);
+            //var code=document.getElementsByClassName("code");
+            faceBox.style.transform= "rotate("+angle+"deg)";
+            
+    });
+}
+   
+        
+
+setInterval(function(){
+ detect();
+}, 100);
+    
+</script>
+</html>
+<style>
+body {
+    background-color: #DDD;
+}
+#link{
+    float: right;
+}
+
+.eye {
+    border: 3px solid black;
+    background-color: rgb(0, 0, 0);
+    position: fixed;
+    -moz-animation: cssAnimation 0s ease-in .05s forwards;
+    /* Firefox */
+    -webkit-animation: cssAnimation 0s ease-in .05s forwards;
+    /* Safari and Chrome */
+    -o-animation: cssAnimation 0s ease-in .05s forwards;
+    /* Opera */
+    animation: cssAnimation 0s ease-in .05s forwards;
+    -webkit-animation-fill-mode: forwards;
+    animation-fill-mode: forwards; 
+}
+
+h1{
+font-family: 'Montserrat', sans-serif;
+font-size: 600;
+float: left;
+}
+
+body {
+   margin: 30px;
+}
+
+h2 {
+    font-family: 'Montserrat', sans-serif;
+    font-size: 400;
+    
+}
+.code{
+    border: 3px solid black;
+    background-color: rgba(0, 255, 0, 0.1);
+    position: fixed;
+}
+
+
+
+.face{
+    border: 3px solid black;
+    position: fixed;
+}
+
+.hide{
+    border: 3px solid black;
+    position: fixed;
+}
+
+
+@keyframes cssAnimation {
+    to {
+        width:0;
+        height:0;
+        opacity: 0;
+        overflow:hidden;
+    }
+}
+
+#privacy-toggle {
+    margin-left: 170px;
+    margin-top: 15px;
+}
+
+/* The switch - the box around the slider */
+.switch {
+  position: relative;
+  display: inline-block;
+  width: 60px;
+  height: 34px;
+}
+
+/* Hide default HTML checkbox */
+.switch input {display:none;}
+
+/* The slider */
+.slider {
+  position: absolute;
+  cursor: pointer;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+  background-color: #ccc;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+.slider:before {
+  position: absolute;
+  content: "";
+  height: 26px;
+  width: 26px;
+  left: 4px;
+  bottom: 4px;
+  background-color: white;
+  -webkit-transition: .4s;
+  transition: .4s;
+}
+
+input:checked + .slider {
+  background-color: #2196F3;
+}
+
+input:focus + .slider {
+  box-shadow: 0 0 1px #2196F3;
+}
+
+input:checked + .slider:before {
+  -webkit-transform: translateX(26px);
+  -ms-transform: translateX(26px);
+  transform: translateX(26px);
+}
+
+</style>
